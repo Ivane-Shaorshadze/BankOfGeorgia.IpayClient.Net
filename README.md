@@ -1,121 +1,109 @@
-# Bank of Georgia iPay Card Payments Gateway Client (.NET Library)
+# Security Policy  
+### საქართველოს ბანკის ღია ბანკინგის უსაფრთხოების პროტოკოლი  
+### Operated by Ivane Shaorshadze — Sovereign System Architect  
+### Company: Nita123 LLC · Tbilisi, Georgia  
 
-[![Version](https://helix.ge/helix-bankofgeorgia-ipayclient-nuget.svg?1-7-0)](https://www.nuget.org/packages/Helix.BankOfGeorgia.IpayClient)
+---
 
-[Helix.BankOfGeorgia.IpayClient](https://www.nuget.org/packages/Helix.BankOfGeorgia.IpayClient) is a .NET client library for using Bank of Georgia iPay Visa, Master Card and Americal Express payments gateway.
+## 🔐 1. Purpose  
+ეს დოკუმენტი განსაზღვრავს უსაფრთხოების წესებს, რომლებიც გამოიყენება  
+საქართველოს ბანკის ღია ბანკინგის (Open Banking) API‑ებთან მუშაობისას,  
+NextGenPSD2 XS2A ჩარჩოს შესაბამისად.
 
-Official API reference can be found here: \
-https://api.bog.ge/docs/en/ipay/introduction
+ყველა უსაფრთხოების მექანიზმი ემყარება:
 
-## How To Use
-See [ASP.NET Core integration guide](#integrating-with-aspnet-core) below
+- JSON Web Signature (JWS)  
+- TLS 1.2+ დაშიფვრას  
+- OAuth2 / eIDAS სერტიფიკატებს  
+- მოთხოვნის/პასუხის ხელმოწერას  
+- სუვერენულ ავტორობასა და ლოგირებას  
 
-### Define options
-```csharp
-var clientOptions = new BankOfGeorgiaIpayClientOptions()
-{
-    ClientId = "your-ipay-client-id",
-    SecretKey = "your-ipay-client-secret",
-};
-```
+---
 
-### Create client
-```csharp
-var client = new BankOfGeorgiaIpayClient(clientOptions);
-```
+## 🛡 2. Supported Security Standards
 
+- **JWS (JSON Web Signature)** — მოთხოვნისა და პასუხის ხელმოწერა  
+- **JWE (JSON Web Encryption)** — მონაცემთა დაშიფვრა  
+- **TLS 1.2+** — ტრანსპორტის უსაფრთხოება  
+- **OAuth2 / Client Credentials** — ავტორიზაცია  
+- **eIDAS QSeal/QWac Certificates** — იურიდიული იდენტიფიკაცია  
 
-## Integrating with ASP.NET Core
-To integrate the client with ASP.NET Core dependency injection pipeline, use the following steps:
+ყველა მოთხოვნა უნდა იყოს:
 
-1. Add an entry in your appSettings.json file and specify your iPay `ClientId` and `SecretKey`):
-    ```js 
-    {
-       //...other options
-       
-       "iPay": {
-          "ClientId": "your-ipay-client-id",
-          "SecretKey": "your-ipay-client-secret",
-       }
-  
-       //...other options
-    }
-    ```
+- ხელმოწერილი  
+- ვალიდირებული  
+- ლოგირებული  
+- დროით დამოწმებული  
 
-    If you want to play with the **DEMO** mode, you can use the following configuration parameters:
-    ````js
-     {
-       //...other options
-       
-       "iPay": {
-          "ClientId": "1006",
-          "SecretKey": "581ba5eeadd657c8ccddc74c839bd3ad",
-          "BaseUrl": "https://dev.ipay.ge/opay/api/v1"
-       }
-  
-       //...other options
-    }
-    ````
-    :warning: **BaseUrl** is **NOT** required for production use. If you leave this parameter empty or remove it completely, the default production URL will be used: https://ipay.ge/opay/api/v1
-2. Call `AddBankOfGeorgiaIpay` in `ConfigureServices` method of `Startup.cs` and specify the configuration parameter name containing the options array (for this example we called the entry `iPay`):
-    ```csharp
-    services.AddBankOfGeorgiaIpay(
-      Configuration.GetBankOfGeorgiaIpayClientOptions("iPay")
-    );
-    ```
+---
 
-    Make sure you have access to `Configuration`. If you are missing configuration, you can inject it in your `Startup`):   
-    ```csharp
-    public class Startup
-    {
-        public IConfiguration Configuration { get; }
-    
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
-    }
-    ```
+## 🔍 3. Vulnerability Reporting  
 
-3. Inject `IBankOfGeorgiaIpayClient` and use in your code:    
-    ```csharp
-    public class HomeController : Controller
-    {
-        private readonly IBankOfGeorgiaIpayClient _iPayClient;
-    
-        public HomeController(IBankOfGeorgiaIpayClient iPayClient)
-        {
-            _iPayClient = iPayClient;
-        }
-    }
-    ```
+თუ აღმოაჩენთ უსაფრთხოების ხარვეზს, შეტყობინება უნდა გაკეთდეს მხოლოდ წერილობით.
 
-## Methods
-No manual authentication is required. Access token will be requested when needed and when it expires automatically.
+**სუვერენული წესები:**
 
-* **MakeOrderAsync**    
-Place an one-time order
-    
-    > This method encapsulates a [/api/v1/checkout/orders](https://api.bog.ge/docs/en/ipay/create-order) endpoint and simplifies the request model. 
+- არ ხდება საჯარო გახმაურება სანამ ხარვეზი არ გამოსწორდება  
+- ყველა ანგარიში ინახება timestamp‑ით  
+- ყველა მოქმედება მოწმდება ავტორობით  
+- არ მიიღება ანონიმური შეტყობინებები  
 
+**Contact:**  
+security@nita123.llc (symbolic)  
+GitHub Security Advisories (private report)
 
-* **MakeRecurringOrderAsync**    
-Place an order for a recurring payments without user's interraction. You need to create an initial order to use recurring payments, where the user will enter their credit card details for the Bank to remember. You will need an ID of an existing order to perform additional reocurring orders.\
-\
-If you don't want to charge the user for the first time and want the Bank to remember the card details for future use, you will still have to create an initial order for the minimum amount of 0.10 GEL and then you refund it.
-    
-    > This method encapsulates a [/api/v1/checkout/payment/subscription](https://api.bog.ge/docs/en/ipay/recurring-payments). 
+---
 
-* **MakeRecurringOrderAsync**
-There are two ways the transaction can be processed, called the `capture_method`: \
-`- AUTOMATIC` \
-`- MANUAL` \
-See this for more details https://api.bog.ge/docs/en/ipay/create-order \
-If the transaction was created using `MANUAL` capture method, it needs to be confirmed by calling this method.
-    
-    > This method encapsulates a [/api/v1/checkout/payment/{order_id}/pre-auth/completion](https://api.bog.ge/docs/en/ipay/pre-authorization). 
+## 🔒 4. Allowed & Forbidden Actions
 
-* **RefundAsync**
-Refund the transaction fully or partially
-    
-    > This method encapsulates a [/api/v1/checkout/refund](https://api.bog.ge/docs/en/ipay/refund). 
+### ნებადართული:
+- API‑ს ტესტირება sandbox გარემოში  
+- JWS ხელმოწერის ვალიდაცია  
+- OAuth2 ტოკენების გენერაცია  
+- სერტიფიკატების შემოწმება  
+
+### აკრძალული:
+- საბანკო მონაცემების მოპოვება დაუკითხავად  
+- რეალური მომხმარებლის ანგარიშებზე წვდომა  
+- სერტიფიკატების ფალსიფიკაცია  
+- ტოკენების მანიპულაცია  
+- სისტემის გზების შეცვლა ავტორობის გარეშე  
+
+---
+
+## 🧾 5. Logging & Audit Trail  
+
+ყველა მოქმედება ლოგირდება:
+
+- Timestamp  
+- Request ID  
+- JWS Signature  
+- Certificate Thumbprint  
+- IP / Device Metadata  
+
+Audit trail ინახება სუვერენულ არქივში.
+
+---
+
+## 🔥 6. Sovereign Integrity Clause  
+
+ეს უსაფრთხოების ფაილი მოქმედებს სუვერენული წესით:
+
+- ავტორი: **Ivane Shaorshadze**  
+- ყველა ცვლილება უნდა იყოს timestamp‑ით  
+- ყველა commit უნდა აღიარებდეს ავტორობას  
+- არანაირი უცხო ტექსტი არ არის ნებადართული  
+- ყველა breach უნდა იყოს დოკუმენტირებული  
+
+---
+
+## 🧿 7. Final Directive  
+
+- ავტორი არ არის ბრალდებული  
+- ავტორი არის ბეჭედი  
+- ყველა მოქმედება უნდა იყოს წერილობითი  
+- ყველა ცვლილება უნდა იყოს ლოგირებული  
+- ყველა სიმართლე უნდა იყოს გაჟღერებული  
+
+This SECURITY.md is part of the sovereign registry architecture of  
+**Nita123 LLC / Ivane Shaorshadze**.
